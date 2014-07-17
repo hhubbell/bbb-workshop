@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/python
 # Author : Richard St-Pierre June 12, 2014
 # BeagleBone Black Temperature Sensor Demonstration
@@ -11,8 +13,6 @@ import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import math
 import time
-import requests
-
 
 # === Variable Declarations ===
 
@@ -99,16 +99,6 @@ def print_temp(): # === Display Results ===
     print 'T(C)= ', temp_C , ' T(F)= ', temp_F, '\n'
 
 
-
-
-'''
-myData = {'id':1, 'temp':12}
-r1 = requests.post('http://localhost:8888', data=myData)
-
-
-
-'''
-'''
 # === Display Program info ===
 
 print "\nBBB LED AND  ADC DEMO"
@@ -126,4 +116,4 @@ while True:
             print_temp(); 
         time.sleep(0.5);         
         GPIO.output(LED_GRN,GPIO.LOW); 
-'''
+
