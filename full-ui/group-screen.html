@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SUPER COOL BEAGLEBONE PAGE</title>
+
+    <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+    <style>
+      #players { padding-left: 0px; }
+      #players li { min-width: 200px; min-height: 20px; display: inline-block; border: 1px solid black; margin-right: 15px; }
+
+.thermometer {
+    float: left;
+    margin:0 150px;
+}
+
+.thermometer {
+    width:70px;
+    height:300px;
+    position: relative;
+    background: #ddd;
+    border:1px solid #aaa;
+    -webkit-border-radius: 12px;
+       -moz-border-radius: 12px;
+        -ms-border-radius: 12px;
+         -o-border-radius: 12px;
+            border-radius: 12px;
+
+    -webkit-box-shadow: 1px 1px 4px #999, 5px 0 20px #999;
+       -moz-box-shadow: 1px 1px 4px #999, 5px 0 20px #999;
+        -ms-box-shadow: 1px 1px 4px #999, 5px 0 20px #999;
+         -o-box-shadow: 1px 1px 4px #999, 5px 0 20px #999;
+            box-shadow: 1px 1px 4px #999, 5px 0 20px #999;
+}
+
+.thermometer .track {
+    height:280px;
+    top:10px;
+    width:20px;
+    border: 1px solid #aaa;
+    position: relative;
+    margin:0 auto;
+    background: rgb(255,255,255);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(0,0,0)), color-stop(1%,rgb(255,255,255)));
+    background: -webkit-linear-gradient(top, rgb(0,0,0) 0%,rgb(255,255,255) 10%);
+    background:      -o-linear-gradient(top, rgb(0,0,0) 0%,rgb(255,255,255) 10%);
+    background:     -ms-linear-gradient(top, rgb(0,0,0) 0%,rgb(255,255,255) 10%);
+    background:    -moz-linear-gradient(top, rgb(0,0,0) 0%,rgb(255,255,255) 10%);
+    background:   linear-gradient(to bottom, rgb(0,0,0) 0%,rgb(255,255,255) 10%);
+    background-position: 0 -1px;
+    background-size: 100% 5%;
+}
+
+.thermometer .progress {
+    height:0%;
+    width:100%;
+    background: rgb(20,100,20);
+    background: rgba(20,100,20,0.6);
+    position: absolute;
+    bottom:0;
+    left:0;
+overflow: visible !important;
+}
+
+.thermometer .goal {
+    position:absolute;
+    top:0;
+}
+
+.thermometer .amount {
+    display: inline-block;
+    padding:0 5px 0 60px;
+    border-top:1px solid black;
+    font-family: Trebuchet MS;
+    font-weight: bold;
+    color:#333;
+}
+
+.thermometer .progress .amount {
+    padding:0 60px 0 5px;
+    position: absolute;
+    border-top:1px solid #060;
+    color:#060;
+    right:0;
+}
+
+#thermoTemplate { display: none; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Some Useful Title for this Fun Game!</h1>
+    <ul id="players"></ul>
+
+
+    <ul>
+      <li id="thermoTemplate" class="playerBlock">
+        <div class="bbb-player"></div>
+        <div class="thermometer">
+          <div class="track">
+            <div class="goal">
+              <div class="amount"> 100&deg; </div>
+            </div>
+            <div class="progress">
+              <div class="amount"></div>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+<script>
+
+$(document).ready(function(){
+    setInterval('askBbbForStuff()', 1000);
+});
+
+/**
+ * Ping beaglebone server to get current player data
+ */
+function askBbbForStuff(){
+    jQuery.ajax({
+      type: "GET",
+      url: "localhost:9999",
+      dataType: "json",
+      success: function(data){
+        var players = data.players;
+        checkPlayers(players);
+      },
+      error: function(){ console.log("Something's broke."); }
+    });
+}
+
+/**
+ * Check player data and update UI
+ */
+function checkPlayers(players){
+  var activePlayas = [];
+
+  for(playerId in players){
+    var objId = "bbb-" + playerId;
+    activePlayas.push(objId);
+
+    // Check if ID doesn't exist as an <li> in #players
+    if(!jQuery("#" + objId).length){
+      var newThermo = jQuery("#thermoTemplate").clone().prop('id', objId);
+      jQuery("#players").append(newThermo);
+      jQuery("#" + objId + " .bbb-player").html("BeagleBone #" + playerId);
+    }
+
+    if(players[playerId] != null){
+      thermometer(objId, players[playerId]);
+    }
+  }
+
+  jQuery("#players .playerBlock").each(function(){
+    var playerId = jQuery(this).prop('id');
+    if(jQuery.inArray(playerId, activePlayas) == -1){
+      jQuery("#" + playerId).remove();
+    }
+  });
+}
+
+/**
+ * Thermometer Progress meter.
+ * This function will update the progress element in the "thermometer"
+ * to the updated percentage.
+ * If no parameters are passed in it will read them from the DOM
+ *
+ * @param {Number} goalAmount The Goal amount, this represents the 100% mark
+ * @param {Number} progressAmount The progress amount is the current amount
+ * @param {Boolean} animate Whether to animate the height or not
+ *
+ */
+function thermometer(id, progressAmount) {
+
+    var $thermo = $("#"+id),
+        $progress = $(".progress", $thermo),
+        $goal = $(".goal", $thermo),
+        percentageAmount,
+        newCSS = {};
+
+    goalAmount = parseFloat($goal.text()),
+    progressAmount = progressAmount || parseFloat( $progress.text() ),
+    percentageAmount =  Math.min( Math.round(progressAmount / goalAmount * 1000) / 10, 100); //make sure we have 1 decimal point
+
+    $goal.find(".amount").html(goalAmount + "&deg;");
+    $progress.find(".amount").html(progressAmount + "&deg;");
+
+    newCSS["height"] = percentageAmount + "%";
+
+    $progress.animate( newCSS, 800);
+}
+
+</script>
+
+  </body>
+</html>
