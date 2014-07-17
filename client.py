@@ -11,7 +11,7 @@ import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import math
 import time
-import requests
+#import requests
 
 
 # === Variable Declarations ===
@@ -66,7 +66,7 @@ def led_on_green():
 def led_on_yellow():
 	GPIO.output(LED_YEL,GPIO.HIGH);
 
-def led on_red():
+def led_on_red():
 	GPIO.output(LED_RED,GPIO.HIGH);
 
 #== Turn Off LEDs ==
@@ -76,7 +76,7 @@ def led_on_green():
 def led_on_yellow():
 	GPIO.output(LED_YEL,GPIO.LOW);
 
-def led on_red():
+def led_on_red():
 	GPIO.output(LED_RED,GPIO.LOW);
 
 #== Turn On/Off Buzzer
@@ -84,7 +84,7 @@ def buzzer_on():
 	GPIO.output(BUZZER, GPIO.HIGH);
 
 def buzzer_off():
-	GPIO.output(BUZZER,GPIO.LOW):
+	GPIO.output(BUZZER,GPIO.LOW);
 
 
 
@@ -99,6 +99,12 @@ def print_temp(): # === Display Results ===
     print 'T(C)= ', temp_C , ' T(F)= ', temp_F, '\n'
 
 
+
+print "running!"
+
+led_yellow_on()
+
+led_red_off()
 
 
 '''
