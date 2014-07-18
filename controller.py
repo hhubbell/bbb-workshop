@@ -3,38 +3,51 @@
 # An HTTP controller for the BBB Workshop
 
 import BaseHTTPServer
-import time
+import json
+from threading import Thread
 
-CLIENT_IDS = {}
+HOST = ""
+CLIENT_PORT = 8888
+JSON_PORT = 9999
+CLIENTS = {}
 
-class TCPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    
-    def ack(self):
-        return 0
-
+class ClientTCPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def add_client(self):
-        CLIENT_IDS[self.client_address[0]] = {}
+        CLIENTS[self.client_address[0]] = {}
 
-    def do_GET(self):
+    def do_POST(self):
         print "ACK"
         self.data = self.headers.items()
-
-        if self.client_address[0] not in CLIENT_IDS.keys():
-            self.add_client()
-            self.ack()
-
-        print "{} wrote:".format(self.client_address[0])
         print self.data
 
-        self.send_response(201)
+        if self.client_address[0] not in CLIENTS.keys():
+            self.add_client()
+            self.send_response(201)
+        else:
+            # Parse data
+            # Update CLIENTS with temp
+            # send 200
 
 
+class JSONHandler(BaseHTTPServer.BaseHTTPRequestHandler):    
+    def do_POST(self):
+        self.data = self.headers.items()
+        self.send_JSON()
+        
+    def send_JSON(self):
+        player_json = json.dumps({'players':CLIENTS})
+        self.send(player_json)
 
+def client_serve():
+    httpd = BaseHTTPServer.HTTPServer((HOST, CLIENT_PORT), ClientTCPHandler)
+    httpd.serve_forever()
+
+def json_serve():
+    json_httpd = BaseHTTPServer.HTTPServer((HOST, JSON_PORT), JSONHandler)
+    json_httpd.serve_forever()
 
 if __name__ == "__main__":
-    HOST = ""
-    PORT = 8888
-
-    httpd   = BaseHTTPServer.HTTPServer((HOST, PORT), TCPHandler)
-
-    httpd.serve_forever()
+    client_thread = Thread(target = client_serve)
+    json_thread =Thread(target = json_serve)
+    client_thread.start()
+    json_thread.start()
