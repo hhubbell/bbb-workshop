@@ -70,13 +70,13 @@ def led_on_red():
 	GPIO.output(LED_RED,GPIO.HIGH);
 
 #== Turn Off LEDs ==
-def led_on_green():
+def led_off_green():
 	GPIO.output(LED_GRN,GPIO.LOW);
 
-def led_on_yellow():
+def led_off_yellow():
 	GPIO.output(LED_YEL,GPIO.LOW);
 
-def led_on_red():
+def led_off_red():
 	GPIO.output(LED_RED,GPIO.LOW);
 
 #== Turn On/Off Buzzer
@@ -99,12 +99,6 @@ def print_temp(): # === Display Results ===
     print 'T(C)= ', temp_C , ' T(F)= ', temp_F, '\n'
 
 
-
-print "running!"
-
-led_yellow_on()
-
-led_red_off()
 
 
 '''
