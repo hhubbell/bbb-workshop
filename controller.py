@@ -4,6 +4,7 @@
 
 import BaseHTTPServer
 import json
+import time
 from threading import Thread
 
 HOST = ""
@@ -23,7 +24,7 @@ class ClientTCPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.client_address[0] not in CLIENTS.keys():
             self.add_client()
             self.send_response(201)
-        else:
+        #else:
             # Parse data
             # Update CLIENTS with temp
             # send 200
@@ -47,7 +48,13 @@ def json_serve():
     json_httpd.serve_forever()
 
 if __name__ == "__main__":
-    client_thread = Thread(target = client_serve)
-    json_thread =Thread(target = json_serve)
+    client_thread = Thread(target=client_serve)
+    client_thread.daemon = True
     client_thread.start()
+
+    json_thread = Thread(target=json_serve)
+    json_thread.daemon = True
     json_thread.start()
+
+    while True:
+        time.sleep(1)
