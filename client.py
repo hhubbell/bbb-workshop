@@ -27,7 +27,7 @@ ADC_PIN = "P9_36"	#AIN5
 LED_RED  = "P9_14"      #active high
 LED_YEL  = "P9_16"      #active high
 LED_GRN  = "P8_19"      #active high
-BUZZER   = "P3_13"      #active high
+BUZZER   = "P8_13"      #active high
 PWM_PIN  = "P9_22"      #Fan speed control     
 PUSHBUTTON = "P8_26"    #active low, pull-up
 
@@ -99,15 +99,20 @@ def print_temp(): # === Display Results ===
     print 'T(C)= ', temp_C , ' T(F)= ', temp_F, '\n'
 
 
+'''
+led_on_green()
 
+led_on_red()
+buzzer_on()
 
+time.sleep(1)
+'''
 '''
 myData = {'id':1, 'temp':12}
 r1 = requests.post('http://localhost:8888', data=myData)
 
 
 
-'''
 '''
 # === Display Program info ===
 
@@ -126,4 +131,3 @@ while True:
             print_temp(); 
         time.sleep(0.5);         
         GPIO.output(LED_GRN,GPIO.LOW); 
-'''
