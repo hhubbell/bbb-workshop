@@ -5,8 +5,8 @@
 
     <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
     <style>
-      #competitors { padding-left: 0px; }
-      #competitors li { min-width: 200px; min-height: 20px; display: inline-block; border: 1px solid black; margin-right: 15px; }
+      #players { padding-left: 0px; }
+      #players li { min-width: 200px; min-height: 20px; display: inline-block; border: 1px solid black; margin-right: 15px; }
 
 .thermometer {
     float: left;
@@ -89,55 +89,75 @@ overflow: visible !important;
 
   <body>
     <h1>Some Useful Title for this Fun Game!</h1>
-    <ul id="competitors">
+    <ul id="players"></ul>
+
+
+    <ul>
+      <li id="thermoTemplate" class="playerBlock">
+        <div class="bbb-player"></div>
+        <div class="thermometer">
+          <div class="track">
+            <div class="goal">
+              <div class="amount"> 100&deg; </div>
+            </div>
+            <div class="progress">
+              <div class="amount"></div>
+            </div>
+          </div>
+        </div>
+      </li>
     </ul>
 
-
-<ul>
-<li id="thermoTemplate">
-  <div class="thermometer">
-    <div class="track">
-       <div class="goal">
-         <div class="amount"> 100&deg; </div>
-        </div>
-        <div class="progress">
-          <div class="amount"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</li>
-</ul>
 <script>
 
 $(document).ready(function(){
-
-    setInterval('checkPlayersTemp()', 1000);
+    setInterval('askBbbForStuff()', 1000);
 });
 
-
-function checkPlayersTemp(){
-    var players = {1: Math.floor(Math.random() * 100) + 1,
-                   2: Math.floor(Math.random() * 100) + 1}
-    console.log(players);
-    checkPlayers(players);
+/**
+ * Ping beaglebone server to get current player data
+ */
+function askBbbForStuff(){
+    jQuery.ajax({
+      type: "GET",
+      url: "localhost:9999",
+      dataType: "json",
+      success: function(data){
+        var players = data.players;
+        checkPlayers(players);
+      },
+      error: function(){ console.log("Something's broke."); }
+    });
 }
 
-
+/**
+ * Check player data and update UI
+ */
 function checkPlayers(players){
+  var activePlayas = [];
+
   for(playerId in players){
     var objId = "bbb-" + playerId;
+    activePlayas.push(objId);
 
-    // Check if ID doesn't exist as an <li> in #competitors
+    // Check if ID doesn't exist as an <li> in #players
     if(!jQuery("#" + objId).length){
       var newThermo = jQuery("#thermoTemplate").clone().prop('id', objId);
-      jQuery("#competitors").append(newThermo);
+      jQuery("#players").append(newThermo);
+      jQuery("#" + objId + " .bbb-player").html("BeagleBone #" + playerId);
     }
 
     if(players[playerId] != null){
       thermometer(objId, players[playerId]);
     }
   }
+
+  jQuery("#players .playerBlock").each(function(){
+    var playerId = jQuery(this).prop('id');
+    if(jQuery.inArray(playerId, activePlayas) == -1){
+      jQuery("#" + playerId).remove();
+    }
+  });
 }
 
 /**
@@ -159,21 +179,19 @@ function thermometer(id, progressAmount) {
         percentageAmount,
         newCSS = {};
 
-    goalAmount = parseFloat( $goal.text() ),
+    goalAmount = parseFloat($goal.text()),
     progressAmount = progressAmount || parseFloat( $progress.text() ),
     percentageAmount =  Math.min( Math.round(progressAmount / goalAmount * 1000) / 10, 100); //make sure we have 1 decimal point
 
-    //let's format the numbers and put them back in the DOM
     $goal.find(".amount").html(goalAmount + "&deg;");
     $progress.find(".amount").html(progressAmount + "&deg;");
 
     newCSS["height"] = percentageAmount + "%";
 
-        $progress.animate( newCSS, 800, function(){
-            $(this).find(".amount").fadeIn(500);
-        });
+    $progress.animate( newCSS, 800);
 }
 
 </script>
+
   </body>
 </html>
