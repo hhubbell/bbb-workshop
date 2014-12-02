@@ -2,25 +2,26 @@
 # Harrison Hubbell
 # An HTTP controller for the BBB Workshop
 
+from multiprocessing import Process
 import BaseHTTPServer
 import json
 import time
-from threading import Thread
 
-HOST = ""
+HOST = ''
 CLIENT_PORT = 8888
 JSON_PORT = 9999
 CLIENTS = {}
 
-class ClientTCPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class ClientHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def add_client(self):
         CLIENTS[self.client_address[0]] = {}
 
-    def do_POST(self):
-        print "ACK"
-        self.data = self.headers.items()
-        print self.data
+    def do_GET(self):
+        if self.client_address[0] not in CLIENTS.keys():
+            self.add_client()
+            self.send_response(201)
 
+    def do_POST(self):
         if self.client_address[0] not in CLIENTS.keys():
             self.add_client()
             self.send_response(201)
@@ -30,31 +31,30 @@ class ClientTCPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             # send 200
 
 
-class JSONHandler(BaseHTTPServer.BaseHTTPRequestHandler):    
+class JSONHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.data = self.headers.items()
+        self.send_JSON()
+
     def do_POST(self):
         self.data = self.headers.items()
         self.send_JSON()
         
     def send_JSON(self):
-        player_json = json.dumps({'players':CLIENTS})
-        self.send(player_json)
+        player_json = json.dumps({'players': CLIENTS})
+        self.wfile.write(player_json)
 
-def client_serve():
-    httpd = BaseHTTPServer.HTTPServer((HOST, CLIENT_PORT), ClientTCPHandler)
+def client_serve(host, port):
+    httpd = BaseHTTPServer.HTTPServer((host, port), ClientTCPHandler)
     httpd.serve_forever()
 
-def json_serve():
-    json_httpd = BaseHTTPServer.HTTPServer((HOST, JSON_PORT), JSONHandler)
+def json_serve(host, port):
+    json_httpd = BaseHTTPServer.HTTPServer((host, port), JSONHandler)
     json_httpd.serve_forever()
 
 if __name__ == "__main__":
-    client_thread = Thread(target=client_serve)
-    client_thread.daemon = True
-    client_thread.start()
+    client_server = Process(target=client_serve, args=(HOST, CLIENT_PORT))
+    client_server.start()
 
-    json_thread = Thread(target=json_serve)
-    json_thread.daemon = True
-    json_thread.start()
-
-    while True:
-        time.sleep(1)
+    json_server = Process(target=json_serve, args=(HOST, JSON_PORT))
+    json_server.start()
