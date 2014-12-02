@@ -41,8 +41,9 @@ class JSONHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_JSON()
         
     def send_JSON(self):
-        player_json = json.dumps({'players': CLIENTS})
-        self.wfile.write(player_json)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'players': CLIENTS}))
 
 def client_serve(host, port):
     httpd = BaseHTTPServer.HTTPServer((host, port), ClientTCPHandler)
